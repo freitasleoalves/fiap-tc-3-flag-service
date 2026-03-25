@@ -81,7 +81,7 @@ jobs:
                         -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest .
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.69.3
+        uses: aquasecurity/trivy-action@0.69.2
         with:
           image-ref: "${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}"
           format: "table"
