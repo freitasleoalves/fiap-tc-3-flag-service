@@ -89,7 +89,7 @@ jobs:
           severity: "CRITICAL"
 
       - name: Login to ACR
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: azure/docker-login@v2
         with:
           login-server: ${{ env.ACR_NAME }}.azurecr.io
@@ -97,7 +97,7 @@ jobs:
           password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Push to ACR
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |
           docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
           docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
@@ -106,7 +106,7 @@ jobs:
     name: Update GitOps
     runs-on: ubuntu-latest
     needs: build-scan-push
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     steps:
       - name: Checkout GitOps repo
         uses: actions/checkout@v4
