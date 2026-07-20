@@ -8,6 +8,7 @@ from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from functools import wraps
 import logging
+from opentelemetry import metrics
 
 # Configura o logging
 logging.basicConfig(level=logging.INFO)
@@ -17,6 +18,31 @@ log = logging.getLogger(__name__)
 load_dotenv()
 
 app = Flask(__name__)
+
+# --- Métrica customizada (OpenTelemetry) ---
+# Complementa a auto-instrumentação (habilitada via `opentelemetry-instrument`
+# no Dockerfile) com um contador de nome estável, usado pelo dashboard
+# "ToggleMaster - Overview" no Grafana (togglemaster_http_requests_total).
+_meter = metrics.get_meter("flag-service")
+_http_requests_counter = _meter.create_counter(
+    "togglemaster_http_requests_total",
+    description="Total de requisições HTTP recebidas, por método/rota/status",
+)
+
+
+@app.after_request
+def _record_request_metric(response):
+    _http_requests_counter.add(
+        1,
+        {
+            "service_name": "flag-service",
+            "http_method": request.method,
+            "http_route": request.path,
+            "http_status_code": str(response.status_code),
+        },
+    )
+    return response
+
 
 # --- Configuração ---
 DATABASE_URL = os.getenv("DATABASE_URL")
