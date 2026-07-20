@@ -93,6 +93,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: SCA - Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "table"
+          exit-code: "1"
+          severity: "CRITICAL"
+
       - name: Build Docker image
         run: |
           docker build -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} \
